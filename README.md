@@ -24,6 +24,7 @@ The solution must meet the following requirements:
 
 ---
 ## Phase 1: Planning the design and estimating cost
+This initial phase involved creating an architectural diagram to visualize the target solution and estimating the 12-month operational cost in the `us-east-1` Region using the AWS Pricing Calculator.
 
 ![projetoaws-task1](https://github.com/user-attachments/assets/4958b943-7bef-431c-8a66-e11cd9fb6eb1)
 <img width="698" height="76" alt="image" src="https://github.com/user-attachments/assets/305c70d2-bc8b-452c-bbc2-202268f25563" />
