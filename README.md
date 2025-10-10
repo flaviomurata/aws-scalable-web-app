@@ -48,9 +48,9 @@ A single **Amazon EC2** instance was launched into one of the public subnets. Th
 
 This created a monolithic deployment where both the application and database tiers reside on the same server. The application was then tested by accessing its public IPv4 address to ensure all functionalities—viewing, adding, deleting, and modifying student records—were working correctly.
 
+<img width="1600" height="602" alt="image" src="https://github.com/user-attachments/assets/03e8f783-285c-4604-b021-638d0dccbb54" />
 
 https://github.com/user-attachments/assets/4efa0895-811a-4b29-a529-1cf38de032bc
-
 
 ---
 
@@ -86,6 +86,8 @@ mysqldump -h <EC2instancePrivateip> -u nodeapp -p --databases STUDENTS > data.sq
 
 mysql -h <RDSEndpoint> -u nodeapp -p  STUDENTS < data.sql
 ```
+<img width="1526" height="597" alt="image" src="https://github.com/user-attachments/assets/cdf15154-e86d-49ad-b8fd-59e822d0c5dd" />
+<img width="1523" height="582" alt="image" src="https://github.com/user-attachments/assets/e3e7cdd3-c73c-4ce0-8a80-216a70767346" />
 
 ---
 
