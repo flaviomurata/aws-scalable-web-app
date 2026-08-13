@@ -117,5 +117,3 @@ loadtest -t 600 --rps 1000 -c 500 -k <<ELB URL>>
 ```
 <img width="1648" height="796" alt="image" src="https://github.com/user-attachments/assets/e81cd0cb-6f39-439a-ba54-a29cc7ae9287" />
 <img width="1648" height="796" alt="image" src="https://github.com/user-attachments/assets/0367a49a-cfc5-49d7-8ae3-d95539e97d6f" />
-
-

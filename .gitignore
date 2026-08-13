@@ -26,3 +26,6 @@ override.tf.json
 .DS_Store
 .vscode/
 .idea/
+
+# Lock files belong to the root Terraform configuration
+modules/**/.terraform.lock.hcl
