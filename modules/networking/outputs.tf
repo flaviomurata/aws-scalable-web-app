@@ -15,8 +15,9 @@ output "private_subnet_ids" {
 
 output "availability_zones" {
   description = "Availability Zones used by the project subnets."
-  value = [
-    aws_subnet.public[1].availability_zone,
-    aws_subnet.private[1].availability_zone
-  ]
+
+  value = distinct(concat(
+    aws_subnet.public[*].availability_zone,
+    aws_subnet.private[*].availability_zone
+  ))
 }
