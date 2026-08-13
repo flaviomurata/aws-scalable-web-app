@@ -1,4 +1,4 @@
-aws_region   = "us-east-1"
+aws_region   = "sa-east-1"
 project_name = "student-records"
 environment  = "dev"
 
