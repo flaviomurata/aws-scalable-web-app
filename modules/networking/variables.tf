@@ -20,10 +20,20 @@ variable "public_subnet_cidrs" {
   description = "CIDR blocks assigned to the public subnets."
   type        = list(string)
   nullable    = false
+
+  validation {
+    condition     = length(var.public_subnet_cidrs) == 2
+    error_message = "Exactly two public subnet CIDRs must be provided."
+  }
 }
 
 variable "private_subnet_cidrs" {
   description = "CIDR blocks assigned to the private subnets."
   type        = list(string)
   nullable    = false
+
+  validation {
+    condition     = length(var.private_subnet_cidrs) == 2
+    error_message = "Exactly two private subnet CIDRs must be provided."
+  }
 }
