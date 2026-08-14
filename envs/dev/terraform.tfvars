@@ -15,3 +15,5 @@ private_subnet_cidrs = [
 ]
 
 db_instance_class = "db.t4g.micro"
+
+app_instance_type = "t3.micro"

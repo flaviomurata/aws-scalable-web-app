@@ -49,3 +49,9 @@ variable "db_instance_class" {
   type        = string
   nullable    = false
 }
+
+variable "app_instance_type" {
+  description = "EC2 instance type used by the application."
+  type        = string
+  default     = "t3.micro"
+}

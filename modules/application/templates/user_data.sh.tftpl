@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update -y
+apt-get install -y \
+  nodejs \
+  npm \
+  unzip \
+  wget \
+  curl \
+  jq \
+  default-mysql-client
+
+# Install AWS CLI v2.
+curl -sS \
+  https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip \
+  -o /tmp/awscliv2.zip
+
+unzip -q /tmp/awscliv2.zip -d /tmp
+/tmp/aws/install
+
+# Download the original AWS Academy application.
+mkdir -p /opt/student-records
+
+wget \
+  https://aws-tc-largeobjects.s3.us-west-2.amazonaws.com/CUR-TF-200-ACCAP1-1-91571/1-lab-capstone-project-1/code.zip \
+  -O /tmp/application.zip
+
+mkdir -p /tmp/application
+unzip -q /tmp/application.zip \
+  -d /tmp/application \
+  -x "resources/codebase_partner/node_modules/*"
+
+cp -a \
+  /tmp/application/resources/codebase_partner/. \
+  /opt/student-records/
+
+cd /opt/student-records
+npm install aws aws-sdk
+
+# Retrieve DB credentials without printing them.
+SECRET_JSON="$(
+  aws secretsmanager get-secret-value \
+    --secret-id "${application_secret_name}" \
+    --region "${aws_region}" \
+    --query SecretString \
+    --output text
+)"
+
+DB_USER="$(printf '%s' "$SECRET_JSON" | jq -r '.user')"
+DB_PASSWORD="$(printf '%s' "$SECRET_JSON" | jq -r '.password')"
+DB_HOST="$(printf '%s' "$SECRET_JSON" | jq -r '.host')"
+DB_NAME="$(printf '%s' "$SECRET_JSON" | jq -r '.db')"
+
+# Avoid placing the DB password on the command line.
+umask 077
+
+cat > /root/.my.cnf <<EOF
+[client]
+host=$DB_HOST
+user=$DB_USER
+password="$DB_PASSWORD"
+EOF
+
+# Wait for DB connectivity.
+for attempt in $(seq 1 30); do
+  if mysql \
+    --defaults-extra-file=/root/.my.cnf \
+    "$DB_NAME" \
+    -e "SELECT 1" \
+    >/dev/null 2>&1; then
+    break
+  fi
+
+  if [ "$attempt" -eq 30 ]; then
+    echo "Database did not become reachable."
+    exit 1
+  fi
+
+  sleep 10
+done
+
+# Initialize the schema that Phase 2 originally created locally.
+printf '%s' '${schema_sql_base64}' \
+  | base64 -d \
+  > /tmp/schema.sql
+
+mysql \
+  --defaults-extra-file=/root/.my.cnf \
+  "$DB_NAME" \
+  < /tmp/schema.sql
+
+rm -f /root/.my.cnf /tmp/schema.sql
+
+chown -R ubuntu:ubuntu /opt/student-records
+
+cat > /etc/systemd/system/student-records.service <<'EOF'
+[Unit]
+Description=Student Records Application
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/student-records
+Environment=APP_PORT=${app_port}
+Environment=AWS_REGION=${aws_region}
+Environment=AWS_DEFAULT_REGION=${aws_region}
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable --now student-records.service
+
+rm -rf \
+  /tmp/application \
+  /tmp/application.zip \
+  /tmp/aws \
+  /tmp/awscliv2.zip

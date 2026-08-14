@@ -27,3 +27,13 @@ output "application_database_secret_arn" {
   description = "ARN of the database secret consumed by the application."
   value       = module.database.application_secret_arn
 }
+
+output "application_url" {
+  description = "URL of the student records application."
+  value       = module.application.application_url
+}
+
+output "application_instance_id" {
+  description = "ID of the standalone application instance."
+  value       = module.application.instance_id
+}
