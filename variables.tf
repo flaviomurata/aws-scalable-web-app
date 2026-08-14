@@ -43,3 +43,9 @@ variable "private_subnet_cidrs" {
     error_message = "Exactly two private subnet CIDRs must be provided."
   }
 }
+
+variable "db_instance_class" {
+  description = "RDS instance class used by the development database."
+  type        = string
+  nullable    = false
+}
