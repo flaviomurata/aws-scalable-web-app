@@ -55,3 +55,21 @@ variable "app_instance_type" {
   type        = string
   default     = "t3.micro"
 }
+
+variable "app_min_size" {
+  description = "Minimum number of application instances."
+  type        = number
+  default     = 2
+}
+
+variable "app_desired_capacity" {
+  description = "Desired number of application instances."
+  type        = number
+  default     = 2
+}
+
+variable "app_max_size" {
+  description = "Maximum number of application instances."
+  type        = number
+  default     = 4
+}

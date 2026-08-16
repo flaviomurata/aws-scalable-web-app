@@ -58,3 +58,26 @@ variable "instance_type" {
   type        = string
   default     = "t3.micro"
 }
+
+variable "min_size" {
+  description = "Minimum number of application instances maintained by the Auto Scaling Group."
+  type        = number
+  default     = 2
+
+  validation {
+    condition     = var.min_size >= 1
+    error_message = "min_size must be at least 1."
+  }
+}
+
+variable "desired_capacity" {
+  description = "Desired number of application instances."
+  type        = number
+  default     = 2
+}
+
+variable "max_size" {
+  description = "Maximum number of application instances allowed by the Auto Scaling Group."
+  type        = number
+  default     = 4
+}

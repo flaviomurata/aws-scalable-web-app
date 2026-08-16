@@ -1,6 +1,6 @@
-output "instance_id" {
-  description = "ID of the standalone application EC2 instance."
-  value       = aws_instance.application.id
+output "autoscaling_group_name" {
+  description = "Name of the application Auto Scaling Group."
+  value       = aws_autoscaling_group.main.name
 }
 
 output "load_balancer_dns_name" {

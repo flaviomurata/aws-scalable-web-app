@@ -199,6 +199,7 @@ resource "aws_launch_template" "application" {
       app_port                = local.application_port
       application_secret_name = var.application_secret_name
       schema_sql_base64       = base64encode(file("${path.module}/files/schema.sql"))
+      config_js_base64        = base64encode(file("${path.module}/files/config.js"))
     }
   ))
 
@@ -208,16 +209,6 @@ resource "aws_launch_template" "application" {
     tags = {
       Name = "${var.project_name}-${var.environment}-app"
     }
-  }
-}
-
-resource "aws_instance" "application" {
-  subnet_id                   = var.private_subnet_ids[0]
-  associate_public_ip_address = false
-
-  launch_template {
-    id      = aws_launch_template.application.id
-    version = aws_launch_template.application.latest_version
   }
 }
 
@@ -252,12 +243,6 @@ resource "aws_lb_target_group" "application" {
   }
 }
 
-resource "aws_lb_target_group_attachment" "application" {
-  target_group_arn = aws_lb_target_group.application.arn
-  target_id        = aws_instance.application.id
-  port             = local.application_port
-}
-
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.application.arn
 
@@ -267,5 +252,55 @@ resource "aws_lb_listener" "http" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.application.arn
+  }
+}
+
+data "aws_default_tags" "current" {}
+
+resource "aws_autoscaling_group" "main" {
+  name_prefix = "${var.project_name}-${var.environment}-main-"
+
+  min_size         = var.min_size
+  desired_capacity = var.desired_capacity
+  max_size         = var.max_size
+
+  vpc_zone_identifier = var.private_subnet_ids
+
+  target_group_arns = [
+    aws_lb_target_group.application.arn,
+  ]
+
+  health_check_type         = "ELB"
+  health_check_grace_period = 600
+
+  launch_template {
+    id      = aws_launch_template.application.id
+    version = aws_launch_template.application.latest_version
+  }
+
+  dynamic "tag" {
+    for_each = merge(
+      data.aws_default_tags.current.tags,
+      {
+        Name = "${var.project_name}-${var.environment}-app"
+      }
+    )
+
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
+    }
+  }
+
+  instance_refresh {
+    strategy = "Rolling"
+
+    preferences {
+      min_healthy_percentage = 50
+      instance_warmup        = 600
+      auto_rollback          = true
+      skip_matching          = true
+    }
   }
 }

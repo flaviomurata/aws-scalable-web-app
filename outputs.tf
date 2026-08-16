@@ -33,7 +33,7 @@ output "application_url" {
   value       = module.application.application_url
 }
 
-output "application_instance_id" {
-  description = "ID of the standalone application instance."
-  value       = module.application.instance_id
+output "application_autoscaling_group_name" {
+  description = "Name of the application Auto Scaling Group."
+  value       = module.application.autoscaling_group_name
 }

@@ -23,7 +23,7 @@ module "database" {
 }
 
 module "application" {
-  source = "./modules/application/"
+  source = "./modules/application"
 
   project_name = var.project_name
   environment  = var.environment
@@ -39,4 +39,8 @@ module "application" {
   application_secret_name = module.database.application_secret_name
 
   instance_type = var.app_instance_type
+
+  min_size         = var.app_min_size
+  desired_capacity = var.app_desired_capacity
+  max_size         = var.app_max_size
 }
