@@ -42,17 +42,20 @@ resource "aws_security_group" "application" {
   }
 }
 
-resource "aws_vpc_security_group_ingress_rule" "load_balancer_http" {
+resource "aws_vpc_security_group_ingress_rule" "alb_from_internet_http" {
   security_group_id = aws_security_group.load_balancer.id
 
+  description = "Allow HTTP traffic from the internet"
   cidr_ipv4   = "0.0.0.0/0"
   from_port   = 80
   to_port     = 80
   ip_protocol = "tcp"
 }
 
-resource "aws_vpc_security_group_egress_rule" "load_balancer_application" {
+resource "aws_vpc_security_group_egress_rule" "alb_to_app_http" {
   security_group_id = aws_security_group.load_balancer.id
+
+  description = "Allow HTTP traffic from the ALB to the application instances"
 
   referenced_security_group_id = aws_security_group.application.id
 
@@ -61,8 +64,10 @@ resource "aws_vpc_security_group_egress_rule" "load_balancer_application" {
   ip_protocol = "tcp"
 }
 
-resource "aws_vpc_security_group_ingress_rule" "application_load_balancer" {
+resource "aws_vpc_security_group_ingress_rule" "app_from_alb_http" {
   security_group_id = aws_security_group.application.id
+
+  description = "Allow HTTP traffic from the ALB"
 
   referenced_security_group_id = aws_security_group.load_balancer.id
 
@@ -71,8 +76,10 @@ resource "aws_vpc_security_group_ingress_rule" "application_load_balancer" {
   ip_protocol = "tcp"
 }
 
-resource "aws_vpc_security_group_egress_rule" "application_http" {
+resource "aws_vpc_security_group_egress_rule" "app_to_internet_http" {
   security_group_id = aws_security_group.application.id
+
+  description = "Allow HTTP traffic from the application instances to the internet"
 
   cidr_ipv4   = "0.0.0.0/0"
   from_port   = 80
@@ -80,8 +87,10 @@ resource "aws_vpc_security_group_egress_rule" "application_http" {
   ip_protocol = "tcp"
 }
 
-resource "aws_vpc_security_group_egress_rule" "application_https" {
+resource "aws_vpc_security_group_egress_rule" "app_to_internet_https" {
   security_group_id = aws_security_group.application.id
+
+  description = "Allow HTTPS traffic from the application instances to the internet"
 
   cidr_ipv4   = "0.0.0.0/0"
   from_port   = 443
@@ -89,8 +98,10 @@ resource "aws_vpc_security_group_egress_rule" "application_https" {
   ip_protocol = "tcp"
 }
 
-resource "aws_vpc_security_group_egress_rule" "application_database" {
+resource "aws_vpc_security_group_egress_rule" "app_to_db_mysql" {
   security_group_id = aws_security_group.application.id
+
+  description = "Allow MySQL traffic from the application instances to the database"
 
   referenced_security_group_id = var.database_security_group_id
 
@@ -99,8 +110,10 @@ resource "aws_vpc_security_group_egress_rule" "application_database" {
   ip_protocol = "tcp"
 }
 
-resource "aws_vpc_security_group_ingress_rule" "database_application" {
+resource "aws_vpc_security_group_ingress_rule" "db_from_app_mysql" {
   security_group_id = var.database_security_group_id
+
+  description = "Allow MySQL traffic from the application instances"
 
   referenced_security_group_id = aws_security_group.application.id
 
