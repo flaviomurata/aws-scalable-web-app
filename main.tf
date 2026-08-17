@@ -51,6 +51,7 @@ module "observability" {
 
   project_name = var.project_name
   environment  = var.environment
+  aws_region   = var.aws_region
 
   load_balancer_arn_suffix = module.application.load_balancer_arn_suffix
   target_group_arn_suffix  = module.application.target_group_arn_suffix

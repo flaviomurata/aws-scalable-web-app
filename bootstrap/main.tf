@@ -138,6 +138,11 @@ data "aws_iam_policy_document" "github_plan" {
       "cloudwatch:DescribeAlarms",
       "cloudwatch:DescribeAlarmHistory",
       "cloudwatch:ListTagsForResource",
+      "cloudwatch:GetDashboard",
+      "cloudwatch:ListDashboards",
+      "sns:GetTopicAttributes",
+      "sns:ListSubscriptionsByTopic",
+      "sns:ListTagsForResource",
       "ec2:Describe*",
       "elasticloadbalancing:Describe*",
       "iam:Get*",
@@ -450,6 +455,43 @@ data "aws_iam_policy_document" "github_apply" {
 
     resources = [
       "arn:aws:cloudwatch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:alarm:${var.project_name}-dev-*",
+    ]
+  }
+
+  statement {
+    sid    = "ManageAlertTopic"
+    effect = "Allow"
+
+    actions = [
+      "sns:CreateTopic",
+      "sns:DeleteTopic",
+      "sns:GetTopicAttributes",
+      "sns:SetTopicAttributes",
+      "sns:ListSubscriptionsByTopic",
+      "sns:ListTagsForResource",
+      "sns:TagResource",
+      "sns:UntagResource",
+    ]
+
+    resources = [
+      "arn:aws:sns:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${var.project_name}-dev-alerts",
+    ]
+  }
+
+  statement {
+    sid    = "ManageCloudWatchDashboard"
+    effect = "Allow"
+
+    actions = [
+      "cloudwatch:GetDashboard",
+      "cloudwatch:PutDashboard",
+      "cloudwatch:DeleteDashboards",
+      "cloudwatch:TagResource",
+      "cloudwatch:UntagResource",
+    ]
+
+    resources = [
+      "arn:aws:cloudwatch::${data.aws_caller_identity.current.account_id}:dashboard/${var.project_name}-dev",
     ]
   }
 }

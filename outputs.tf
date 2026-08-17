@@ -37,3 +37,13 @@ output "application_autoscaling_group_name" {
   description = "Name of the application Auto Scaling Group."
   value       = module.application.autoscaling_group_name
 }
+
+output "alert_topic_arn" {
+  description = "ARN of the SNS topic receiving operational alerts."
+  value       = module.observability.alert_topic_arn
+}
+
+output "cloudwatch_dashboard_name" {
+  description = "Name of the CloudWatch operational dashboard."
+  value       = module.observability.dashboard_name
+}

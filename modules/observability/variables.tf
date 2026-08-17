@@ -44,3 +44,8 @@ variable "rds_free_storage_threshold_bytes" {
   type        = number
   default     = 2147483648 # 2 GiB
 }
+
+variable "aws_region" {
+  description = "AWS Region where observability resources are deployed."
+  type        = string
+}
