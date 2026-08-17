@@ -337,6 +337,8 @@ data "aws_iam_policy_document" "github_apply" {
       "iam:DeleteInstanceProfile",
       "iam:AddRoleToInstanceProfile",
       "iam:RemoveRoleFromInstanceProfile",
+      "iam:TagInstanceProfile",
+      "iam:UntagInstanceProfile",
     ]
 
     resources = [
