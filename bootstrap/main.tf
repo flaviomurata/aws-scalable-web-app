@@ -420,6 +420,35 @@ data "aws_iam_policy_document" "github_apply" {
 
     resources = ["*"]
   }
+
+  statement {
+    sid    = "ReadCloudWatchAlarms"
+    effect = "Allow"
+
+    actions = [
+      "cloudwatch:DescribeAlarms",
+      "cloudwatch:DescribeAlarmHistory",
+      "cloudwatch:ListTagsForResource",
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "ManageProjectCloudWatchAlarms"
+    effect = "Allow"
+
+    actions = [
+      "cloudwatch:PutMetricAlarm",
+      "cloudwatch:DeleteAlarms",
+      "cloudwatch:TagResource",
+      "cloudwatch:UntagResource",
+    ]
+
+    resources = [
+      "arn:aws:cloudwatch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:alarm:${var.project_name}-dev-*",
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "github_apply" {

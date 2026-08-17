@@ -45,3 +45,18 @@ module "application" {
 
   target_cpu_utilization = var.app_target_cpu_utilization
 }
+
+module "observability" {
+  source = "./modules/observability"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  load_balancer_arn_suffix = module.application.load_balancer_arn_suffix
+  target_group_arn_suffix  = module.application.target_group_arn_suffix
+
+  autoscaling_group_name     = module.application.autoscaling_group_name
+  autoscaling_group_min_size = var.app_min_size
+
+  db_instance_id = module.database.db_instance_id
+}

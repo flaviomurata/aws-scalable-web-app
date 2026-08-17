@@ -307,6 +307,15 @@ resource "aws_autoscaling_group" "main" {
       skip_matching          = true
     }
   }
+
+  enabled_metrics = [
+    "GroupDesiredCapacity",
+    "GroupInServiceInstances",
+    "GroupPendingInstances",
+    "GroupTerminatingInstances",
+  ]
+
+  metrics_granularity = "1Minute"
 }
 
 resource "aws_autoscaling_policy" "cpu_target" {

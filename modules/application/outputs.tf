@@ -12,3 +12,13 @@ output "application_url" {
   description = "HTTP URL of the student records application."
   value       = "http://${aws_lb.application.dns_name}"
 }
+
+output "load_balancer_arn_suffix" {
+  description = "ARN suffix used as the CloudWatch LoadBalancer metric dimension."
+  value       = aws_lb.application.arn_suffix
+}
+
+output "target_group_arn_suffix" {
+  description = "ARN suffix used as the CloudWatch TargetGroup metric dimension."
+  value       = aws_lb_target_group.application.arn_suffix
+}
