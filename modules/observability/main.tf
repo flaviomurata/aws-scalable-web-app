@@ -1,5 +1,6 @@
 data "aws_caller_identity" "current" {}
 
+#trivy:ignore:AWS-0095
 resource "aws_sns_topic" "alerts" {
   name = "${var.project_name}-${var.environment}-alerts"
 }

@@ -25,3 +25,9 @@ repos:
       - id: terraform_tflint
         args:
           - --args=--config=__GIT_WORKING_DIR__/.tflint.hcl
+      - id: terraform_trivy
+        args:
+          - --args=--severity=HIGH,CRITICAL
+          - --args=--exit-code=1
+          - '--args=--skip-dirs=**/.terraform'
+          - --args=--tf-vars=__GIT_WORKING_DIR__/envs/dev/terraform.tfvars

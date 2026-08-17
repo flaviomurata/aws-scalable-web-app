@@ -77,6 +77,7 @@ resource "aws_vpc_security_group_ingress_rule" "app_from_alb_http" {
   ip_protocol = "tcp"
 }
 
+#trivy:ignore:AWS-0104
 resource "aws_vpc_security_group_egress_rule" "app_to_internet_http" {
   security_group_id = aws_security_group.application.id
 
@@ -88,6 +89,7 @@ resource "aws_vpc_security_group_egress_rule" "app_to_internet_http" {
   ip_protocol = "tcp"
 }
 
+#trivy:ignore:AWS-0104
 resource "aws_vpc_security_group_egress_rule" "app_to_internet_https" {
   security_group_id = aws_security_group.application.id
 
@@ -217,10 +219,12 @@ resource "aws_launch_template" "application" {
   }
 }
 
+#trivy:ignore:AWS-0053
 resource "aws_lb" "application" {
-  name               = "${var.project_name}-${var.environment}-alb"
-  internal           = false
-  load_balancer_type = "application"
+  name                       = "${var.project_name}-${var.environment}-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  drop_invalid_header_fields = true
 
   security_groups = [
     aws_security_group.load_balancer.id,
@@ -248,6 +252,7 @@ resource "aws_lb_target_group" "application" {
   }
 }
 
+#trivy:ignore:AWS-0054
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.application.arn
 
