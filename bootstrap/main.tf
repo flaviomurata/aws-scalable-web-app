@@ -135,6 +135,9 @@ data "aws_iam_policy_document" "github_plan" {
 
     actions = [
       "autoscaling:Describe*",
+      "cloudwatch:DescribeAlarms",
+      "cloudwatch:DescribeAlarmHistory",
+      "cloudwatch:ListTagsForResource",
       "ec2:Describe*",
       "elasticloadbalancing:Describe*",
       "iam:Get*",
