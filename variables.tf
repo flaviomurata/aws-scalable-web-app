@@ -62,14 +62,14 @@ variable "app_min_size" {
   default     = 2
 }
 
-variable "app_desired_capacity" {
-  description = "Desired number of application instances."
-  type        = number
-  default     = 2
-}
-
 variable "app_max_size" {
   description = "Maximum number of application instances."
   type        = number
   default     = 4
+}
+
+variable "app_target_cpu_utilization" {
+  description = "Average CPU utilization target for application Auto Scaling."
+  type        = number
+  default     = 50
 }

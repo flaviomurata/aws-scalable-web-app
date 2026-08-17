@@ -37,11 +37,11 @@ cp -a \
   /tmp/application/resources/codebase_partner/. \
   /opt/student-records/
 
-# The AWS Academy application hardcodes Secrets Manager to us-east-1.
-# Use the deployment region provided by the instance environment instead.
-sed -i \
-  's/region: "us-east-1"/region: process.env.AWS_REGION/' \
-  /opt/student-records/app/config/config.js
+# Replace the AWS Academy configuration with the
+# region-independent version maintained by this project.
+printf '%s' '${config_js_base64}' \
+  | base64 -d \
+  > /opt/student-records/app/config/config.js
 
 cd /opt/student-records
 npm install aws aws-sdk

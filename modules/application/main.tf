@@ -1,5 +1,6 @@
 locals {
-  application_port = 3000
+  application_port        = 3000
+  instance_warmup_seconds = 600
 }
 
 data "aws_ami" "ubuntu" {
@@ -210,6 +211,10 @@ resource "aws_launch_template" "application" {
       Name = "${var.project_name}-${var.environment}-app"
     }
   }
+
+  monitoring {
+    enabled = true
+  }
 }
 
 resource "aws_lb" "application" {
@@ -260,9 +265,8 @@ data "aws_default_tags" "current" {}
 resource "aws_autoscaling_group" "main" {
   name_prefix = "${var.project_name}-${var.environment}-main-"
 
-  min_size         = var.min_size
-  desired_capacity = var.desired_capacity
-  max_size         = var.max_size
+  min_size = var.min_size
+  max_size = var.max_size
 
   vpc_zone_identifier = var.private_subnet_ids
 
@@ -298,9 +302,24 @@ resource "aws_autoscaling_group" "main" {
 
     preferences {
       min_healthy_percentage = 50
-      instance_warmup        = 600
+      instance_warmup        = local.instance_warmup_seconds
       auto_rollback          = true
       skip_matching          = true
     }
+  }
+}
+
+resource "aws_autoscaling_policy" "cpu_target" {
+  name = "${var.project_name}-${var.environment}-cpu-target-tracking"
+
+  autoscaling_group_name = aws_autoscaling_group.main.name
+  policy_type            = "TargetTrackingScaling"
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+
+    target_value = var.target_cpu_utilization
   }
 }

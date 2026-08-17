@@ -40,7 +40,8 @@ module "application" {
 
   instance_type = var.app_instance_type
 
-  min_size         = var.app_min_size
-  desired_capacity = var.app_desired_capacity
-  max_size         = var.app_max_size
+  min_size = var.app_min_size
+  max_size = var.app_max_size
+
+  target_cpu_utilization = var.app_target_cpu_utilization
 }
