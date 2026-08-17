@@ -7,3 +7,8 @@ output "github_plan_role_arn" {
   description = "IAM role assumed by GitHub Actions when running Terraform plans."
   value       = aws_iam_role.github_plan.arn
 }
+
+output "github_apply_role_arn" {
+  description = "IAM role assumed by GitHub Actions when applying Terraform changes."
+  value       = aws_iam_role.github_apply.arn
+}

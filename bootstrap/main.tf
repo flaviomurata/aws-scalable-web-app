@@ -9,8 +9,11 @@ locals {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket        = local.state_bucket_name
-  force_destroy = true
+  bucket = local.state_bucket_name
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_s3_bucket_versioning" "terraform_state" {
@@ -210,4 +213,216 @@ resource "aws_iam_role_policy" "github_plan" {
   role = aws_iam_role.github_plan.name
 
   policy = data.aws_iam_policy_document.github_plan.json
+}
+
+data "aws_iam_policy_document" "github_apply_assume_role" {
+  statement {
+    sid    = "GitHubActions"
+    effect = "Allow"
+
+    actions = [
+      "sts:AssumeRoleWithWebIdentity",
+    ]
+
+    principals {
+      type = "Federated"
+
+      identifiers = [
+        aws_iam_openid_connect_provider.github.arn,
+      ]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+
+      values = [
+        "sts.amazonaws.com",
+      ]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:sub"
+
+      values = [
+        "repo:flaviomurata/aws-scalable-web-app:environment:dev",
+      ]
+    }
+  }
+}
+
+resource "aws_iam_role" "github_apply" {
+  name        = "${var.project_name}-github-apply"
+  description = "Terraform deployment role assumed by GitHub Actions through OIDC."
+
+  assume_role_policy = data.aws_iam_policy_document.github_apply_assume_role.json
+}
+
+data "aws_iam_policy_document" "github_apply" {
+  statement {
+    sid    = "ManageApplicationInfrastructure"
+    effect = "Allow"
+
+    actions = [
+      "autoscaling:*",
+      "ec2:*",
+      "elasticloadbalancing:*",
+      "rds:*",
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "ManageApplicationSecrets"
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:*",
+    ]
+
+    resources = [
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:Mydbsecret-*",
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.project_name}-dev-rds-password-*",
+    ]
+  }
+
+  statement {
+    sid    = "ReadIAM"
+    effect = "Allow"
+
+    actions = [
+      "iam:GetRole",
+      "iam:GetRolePolicy",
+      "iam:GetInstanceProfile",
+      "iam:GetPolicy",
+      "iam:GetPolicyVersion",
+      "iam:ListAttachedRolePolicies",
+      "iam:ListInstanceProfilesForRole",
+      "iam:ListRolePolicies",
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "ManageApplicationRole"
+    effect = "Allow"
+
+    actions = [
+      "iam:CreateRole",
+      "iam:DeleteRole",
+      "iam:TagRole",
+      "iam:UntagRole",
+      "iam:UpdateAssumeRolePolicy",
+      "iam:PutRolePolicy",
+      "iam:DeleteRolePolicy",
+      "iam:AttachRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:PassRole",
+    ]
+
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-dev-app",
+    ]
+  }
+
+  statement {
+    sid    = "ManageApplicationInstanceProfile"
+    effect = "Allow"
+
+    actions = [
+      "iam:CreateInstanceProfile",
+      "iam:DeleteInstanceProfile",
+      "iam:AddRoleToInstanceProfile",
+      "iam:RemoveRoleFromInstanceProfile",
+    ]
+
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/${var.project_name}-dev-app",
+    ]
+  }
+
+  statement {
+    sid    = "CreateRequiredServiceLinkedRoles"
+    effect = "Allow"
+
+    actions = [
+      "iam:CreateServiceLinkedRole",
+    ]
+
+    resources = ["*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "iam:AWSServiceName"
+
+      values = [
+        "autoscaling.amazonaws.com",
+        "elasticloadbalancing.amazonaws.com",
+        "rds.amazonaws.com",
+      ]
+    }
+  }
+
+  statement {
+    sid    = "ListTerraformStateBucket"
+    effect = "Allow"
+
+    actions = [
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      aws_s3_bucket.terraform_state.arn,
+    ]
+  }
+
+  statement {
+    sid    = "ManageTerraformState"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.terraform_state.arn}/${local.terraform_state_key}",
+    ]
+  }
+
+  statement {
+    sid    = "ManageTerraformStateLock"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.terraform_state.arn}/${local.terraform_state_key}.tflock",
+    ]
+  }
+
+  statement {
+    sid    = "IdentifyCaller"
+    effect = "Allow"
+
+    actions = [
+      "sts:GetCallerIdentity",
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "github_apply" {
+  name = "${var.project_name}-terraform-apply"
+  role = aws_iam_role.github_apply.name
+
+  policy = data.aws_iam_policy_document.github_apply.json
 }

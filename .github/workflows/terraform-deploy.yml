@@ -1,0 +1,104 @@
+name: Terraform Deploy
+
+on:
+  workflow_dispatch:
+
+env:
+  TF_IN_AUTOMATION: "true"
+
+concurrency:
+  group: terraform-dev
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Review Terraform plan
+
+    if: github.ref == 'refs/heads/main'
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: 1.15.8
+
+      - name: Configure AWS plan credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: ${{ vars.AWS_PLAN_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}
+          role-session-name: terraform-plan-${{ github.run_id }}
+
+      - name: Initialize Terraform
+        run: |
+          terraform init \
+            -input=false \
+            -backend-config=envs/dev/backend.hcl
+
+      - name: Terraform plan
+        run: |
+          terraform plan \
+            -input=false \
+            -no-color \
+            -var-file=envs/dev/terraform.tfvars
+
+  apply:
+    name: Apply Terraform
+    needs: plan
+
+    if: github.ref == 'refs/heads/main'
+
+    runs-on: ubuntu-latest
+
+    environment:
+      name: dev
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: 1.15.8
+
+      - name: Configure AWS apply credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: ${{ vars.AWS_APPLY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}
+          role-session-name: terraform-apply-${{ github.run_id }}
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Initialize Terraform
+        run: |
+          terraform init \
+            -input=false \
+            -backend-config=envs/dev/backend.hcl
+
+      - name: Create deployment plan
+        run: |
+          terraform plan \
+            -input=false \
+            -out=tfplan \
+            -var-file=envs/dev/terraform.tfvars
+
+      - name: Apply deployment plan
+        run: terraform apply -input=false -auto-approve tfplan
