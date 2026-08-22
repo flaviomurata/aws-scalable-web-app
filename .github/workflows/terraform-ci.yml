@@ -4,7 +4,9 @@ on:
   pull_request:
     paths:
       - "**/*.tf"
+      - "**/*.tfvars"
       - "**/*.hcl"
+      - ".tflint.hcl"
       - ".pre-commit-config.yaml"
       - ".trivyignore"
       - ".trivyignore.yaml"
@@ -48,6 +50,11 @@ jobs:
 
       - name: Validate Terraform
         run: terraform validate
+
+      - name: Validate bootstrap
+        run: |
+          terraform -chdir=bootstrap init -backend=false -input=false
+          terraform -chdir=bootstrap validate
 
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@6e1e0642c0289bd619021bf6b34e3c08ed1e005a # v6.3.0
