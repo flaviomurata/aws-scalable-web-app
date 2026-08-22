@@ -37,64 +37,8 @@ The project is intentionally designed as a **portfolio-grade reference architect
 
 ## Architecture
 
-```mermaid
-flowchart TB
-    Internet((Internet))
-
-    subgraph AWS["AWS Region"]
-        direction TB
-
-        IGW[Internet Gateway]
-
-        subgraph VPC["Custom VPC - 2 Availability Zones"]
-            direction TB
-
-            subgraph Public["Public subnets"]
-                direction LR
-                ALB[Application Load Balancer]
-                NATA[NAT Gateway - AZ A]
-                NATB[NAT Gateway - AZ B]
-            end
-
-            subgraph Private["Private subnets"]
-                direction LR
-                EC2A[EC2 application instance - AZ A]
-                EC2B[EC2 application instance - AZ B]
-                RDS[(RDS MySQL)]
-            end
-        end
-
-        SM[Secrets Manager]
-        CW[CloudWatch alarms + dashboard]
-        SNS[SNS alerts]
-    end
-
-    GH[GitHub Actions]
-    OIDC[GitHub OIDC provider]
-    IAM[IAM plan/apply roles]
-
-    Internet --> ALB
-    Internet --- IGW
-    ALB --> EC2A
-    ALB --> EC2B
-    EC2A --> RDS
-    EC2B --> RDS
-    EC2A --> NATA
-    EC2B --> NATB
-    NATA --> IGW
-    NATB --> IGW
-    EC2A --> SM
-    EC2B --> SM
-    ALB -. metrics .-> CW
-    EC2A -. metrics .-> CW
-    EC2B -. metrics .-> CW
-    RDS -. metrics .-> CW
-    CW --> SNS
-
-    GH -->|OIDC| OIDC
-    OIDC --> IAM
-    IAM -->|short-lived AWS credentials| AWS
-```
+![projetoaws-task1](https://github.com/user-attachments/assets/4958b943-7bef-431c-8a66-e11cd9fb6eb1)
+<img width="698" height="76" alt="image" src="https://github.com/user-attachments/assets/305c70d2-bc8b-452c-bbc2-202268f25563" />
 
 ### Request and dependency flow
 
